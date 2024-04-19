@@ -28,6 +28,7 @@ const init = () => {
 	};
 
 	const handleEvent = async () => {
+		result.classList.remove('small-text');
 		if (inProgress) return;
 		inProgress = true;
 		button.disabled = true;
