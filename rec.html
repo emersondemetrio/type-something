@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Record Div Content</title>
+	</head>
+	<body>
+		<div id="contentToRecord">
+			<!-- Your content goes here -->
+			<h1>This is the content to record</h1>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+		</div>
+
+		<button id="startRecording">Start Recording</button>
+		<button id="stopRecording">Stop Recording</button>
+
+		<video id="recordedVideo" controls></video>
+
+		<script>
+			const contentToRecord = document.getElementById('contentToRecord');
+			const canvas = document.createElement('canvas');
+			const ctx = canvas.getContext('2d');
+			const recordedVideo = document.getElementById('recordedVideo');
+			let mediaRecorder;
+			let chunks = [];
+
+			// Function to start recording
+			function startRecording() {
+				const stream = canvas.captureStream();
+				mediaRecorder = new MediaRecorder(stream);
+
+				mediaRecorder.ondataavailable = function (event) {
+					chunks.push(event.data);
+				};
+
+				mediaRecorder.onstop = function () {
+					const blob = new Blob(chunks, { type: 'video/mp4' });
+					const videoURL = window.URL.createObjectURL(blob);
+					recordedVideo.src = videoURL;
+				};
+
+				mediaRecorder.start();
+			}
+
+			// Function to stop recording
+			function stopRecording() {
+				mediaRecorder.stop();
+			}
+
+			// Draw the content of the div onto the canvas
+			function drawContentOnCanvas() {
+				const contentImage = new Image();
+				contentImage.onload = function () {
+					canvas.width = contentImage.width;
+					canvas.height = contentImage.height;
+					ctx.drawImage(contentImage, 0, 0);
+				};
+				contentImage.src =
+					'data:image/svg+xml,' +
+					encodeURIComponent(
+						'<svg xmlns="http://www.w3.org/2000/svg" width="' +
+							contentToRecord.offsetWidth +
+							'" height="' +
+							contentToRecord.offsetHeight +
+							'">' +
+							'<foreignObject width="100%" height="100%">' +
+							new XMLSerializer().serializeToString(
+								contentToRecord
+							) +
+							'</foreignObject>' +
+							'</svg>'
+					);
+			}
+
+			// Event listeners for buttons
+			document
+				.getElementById('startRecording')
+				.addEventListener('click', () => {
+					drawContentOnCanvas();
+					startRecording();
+				});
+
+			document
+				.getElementById('stopRecording')
+				.addEventListener('click', () => {
+					stopRecording();
+				});
+		</script>
+	</body>
+</html>
